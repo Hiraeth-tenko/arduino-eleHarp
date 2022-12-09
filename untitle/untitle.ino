@@ -52,28 +52,12 @@ int CTONE[3][8] = {
     {0, 525, 589, 661, 700, 786, 882, 990}};
 float duration[5] = {1.0, 1.0 / 2, 1.0 / 4, 1.0 / 8, 1.0 / 16};
 
+void changeMode(); // 判断是否改变播放模式
+
 void loop()
 {
     // put your main code here, to run repeatedly:
-    int val = -1;
-    val = Serial.read();
-    if (val != -1 && val != '\n')
-    {
-        if (val == 'S' || val == 's')
-        {
-            val = Serial.read();
-            if (val == 1)
-            {
-                playMode = val;
-                Serial.println("切换至演奏模式");
-            }
-            else if (val == 0)
-            {
-                playMode = val;
-                Serial.println("切换至演奏模式");
-            }
-        }
-    }
+    changeMode();
     if (playMode)
     {
         for (int i = 0; i < 6; ++i)
@@ -105,14 +89,13 @@ void loop()
         Serial.println(len);
         Serial.print("len2: ");
         Serial.println(len2);
-        delay(10000);
         Serial.println("Start");
         delay(1000);
         for (int i = 0; i < len; i++)
         {
+            changeMode();
             int tune = CTONE[cloudTONE[i][0]][cloudTONE[i][1]];
             float dur = cloudDUR[i];
-
             if (tune == 0)
             {
                 tone(tonePin, tune);
@@ -121,5 +104,43 @@ void loop()
             }
         }
         delay(5000);
+    }
+}
+void changeMode()
+{
+    int op = -1;
+    op = Serial.read();
+    if (op != -1 && op != '\n')
+    {
+        delay(20);
+        switch (op)
+        {
+        case 'S':
+        case 's':
+        {
+            op = Serial.read();
+            switch (op)
+            {
+            case 0:
+            {
+                Serial.println("切换至播放模式");
+            }
+            break;
+            case 1:
+            {
+                Serial.println("切换至演奏模式");
+            }
+            break;
+
+            default:
+                break;
+            }
+            playMode = op;
+        }
+        break;
+
+        default:
+            break;
+        }
     }
 }
