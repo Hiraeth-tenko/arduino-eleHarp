@@ -1,4 +1,4 @@
 {
     "board": "arduino:avr:uno",
-    "programmer": "arduino:avrispmkii"
+    "sketch": "untitle\\untitle.ino"
 }
