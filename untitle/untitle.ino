@@ -40,7 +40,7 @@ void setup()
 {
     // put your setup code here, to run once:
     pinMode(tonePin, OUTPUT);
-    Serial.begin(115200);
+    Serial.begin(9600);
 }
 
 int playMode = 0; // 0 播放乐曲; 1 自行演奏
@@ -57,7 +57,7 @@ void changeMode(); // 判断是否改变播放模式
 void loop()
 {
     // put your main code here, to run repeatedly:
-    changeMode();
+    // changeMode();
     if (playMode)
     {
         for (int i = 0; i < 6; ++i)
@@ -93,7 +93,6 @@ void loop()
         delay(1000);
         for (int i = 0; i < len; i++)
         {
-            changeMode();
             int tune = CTONE[cloudTONE[i][0]][cloudTONE[i][1]];
             float dur = cloudDUR[i];
             if (tune == 0)
@@ -101,6 +100,7 @@ void loop()
                 tone(tonePin, tune);
                 delay((int)(882 * dur));
                 noTone(tonePin);
+                Serial.println("test");
             }
         }
         delay(5000);
