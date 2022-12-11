@@ -36,15 +36,23 @@ int cloudDUR[] = {
 
 const int anPin[6] = {0, 1, 2, 3, 4, 5};
 const int tonePin = 11;
+const int LiPin[6] = {2, 3, 4, 5, 6, 7};
 void setup()
 {
     // put your setup code here, to run once:
     pinMode(tonePin, OUTPUT);
+    for (int i = 0; i < 6; i++)
+    {
+        pinMode(LiPin[i], OUTPUT);
+        digitalWrite(LiPin[i], HIGH);
+    }
+
     Serial.begin(9600);
 }
 
 int playMode = 1; // 0 播放乐曲; 1 自行演奏
 int playType = -1;
+int preType = -1;
 int sounds[6] = {};
 int CTONE[3][8] = {
     {0, 131, 147, 165, 175, 196, 221, 248},
@@ -52,12 +60,12 @@ int CTONE[3][8] = {
     {0, 525, 589, 661, 700, 786, 882, 990}};
 float duration[5] = {1.0, 1.0 / 2, 1.0 / 4, 1.0 / 8, 1.0 / 16};
 
-void changeMode();
+void readCodes();
 
 void loop()
 {
-    changeMode();
-    if (playMode)
+    readCodes();
+    if (playMode == 2)
     {
         for (int i = 0; i < 6; ++i)
         {
@@ -66,40 +74,62 @@ void loop()
             Serial.print(i);
             Serial.print(": ");
             Serial.println(val);
-            if (val < 300)
-            {
-                playType = i;
-                break;
-            }
             delay(1);
         }
         Serial.println("##########");
+        delay(1000);
+    }
+    else if (playMode == 1)
+    {
+        for (int i = 0; i < 6; ++i)
+        {
+            int val = analogRead(anPin[i]);
+            /*Serial.print("analogRead");
+            Serial.print(i);
+            Serial.print(": ");
+            Serial.println(val);
+            */
+            if (val > 600)
+            {
+                preType = playType;
+                playType = i + 1;
+                Serial.print("playsound: ");
+                Serial.println(playType);
+                break;
+            }
+        }
+        if (preType != playType)
+            noTone(tonePin);
+        if (playType > 0 && playType < 7)
+        {
+            tone(tonePin, CTONE[1][playType], 882);
+            Serial.println("##########");
+        }
         if (playType != -1)
         {
             playType = -1;
         }
-        delay(1000);
     }
-    else
+    else if (playMode == 0)
     {
         int len = sizeof(cloudTONE) / sizeof(int) / 2;
         int len2 = sizeof(cloudDUR) / sizeof(int);
-        Serial.print("len: ");
+        /*Serial.print("len: ");
         Serial.println(len);
         Serial.print("len2: ");
         Serial.println(len2);
-        delay(10000);
+        delay(10000);*/
         Serial.println("Start");
         delay(1000);
         for (int i = 0; i < len && playMode == 0; i++)
         {
             int tune = CTONE[cloudTONE[i][0]][cloudTONE[i][1]];
             float dur = cloudDUR[i];
-            Serial.print(i);
+            /*Serial.print(i);
             Serial.print(": tune:");
             Serial.print(tune);
             Serial.print(", dur:");
-            Serial.println(dur);
+            Serial.println(dur);*/
             if (tune != 0)
             {
                 tone(tonePin, tune);
@@ -110,13 +140,19 @@ void loop()
             {
                 delay(882);
             }
-            changeMode();
+            readCodes();
         }
         delay(5000);
     }
 }
 
-void changeMode()
+/*
+    S -> Stop
+    P -> Play
+    Tx -> at mode 0 and tone Song x
+    Cx -> Change mode x
+*/
+void readCodes()
 {
     int ava = 0;
     ava = Serial.available();
@@ -131,8 +167,8 @@ void changeMode()
             delay(20);
             switch (op)
             {
-            case 's':
-            case 'S':
+            case 'c':
+            case 'C':
             {
                 int val = -1;
                 val = Serial.read();
