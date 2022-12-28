@@ -38,9 +38,11 @@ int cloudPer = 882;
 const int anPin[6] = {0, 1, 2, 3, 4, 5};
 const int tonePin = 11;
 const int LiPin[6] = {2, 3, 4, 5, 6, 7};
+const int btnPin[2] = {5, 6};
 int playMode = 1; // 0 播放乐曲; 1 自行演奏
 int playType = -1;
 int preType = -1;
+int playLH = 1;
 
 int stopFlag = 0;
 int reFlag = 0;
@@ -61,6 +63,8 @@ void setup()
 {
     // put your setup code here, to run once:
     pinMode(tonePin, OUTPUT);
+    pinMode(btnPin[0], INPUT);
+    pinMode(btnPin[1], INPUT);
     for (int i = 0; i < 6; i++)
     {
         pinMode(LiPin[i], OUTPUT);
@@ -82,14 +86,13 @@ void loop()
             /*Serial.print("analogRead");
             Serial.print(i);
             Serial.print(": ");
-            Serial.println(val);
-            */
-            if (val > 600)
+            Serial.println(val);*/
+            if (val < 600)
             {
                 preType = playType;
                 playType = i + 1;
-                Serial.print("playsound: ");
-                Serial.println(playType);
+                /*Serial.print("playsound: ");
+                Serial.println(playType);*/
                 break;
             }
             else
@@ -97,11 +100,32 @@ void loop()
                 playType = -1;
             }
         }
+        delay(1000);
+        Serial.println("##########");
         if (preType != playType)
             noTone(tonePin);
         if (playType > 0 && playType < 7)
         {
-            tone(tonePin, CTONE[1][playType], 882);
+            if (digitalRead(btnPin[0]) == HIGH)
+            {
+                playLH = 0;
+                /*Serial.print("read");
+                Serial.print(btnPin[0]);
+                Serial.println("HIGH");*/
+            }
+            else if (digitalRead(btnPin[1]) == HIGH)
+            {
+                playLH = 2;
+                /*Serial.print("read");
+                Serial.print(btnPin[1]);
+                Serial.println("HIGH");*/
+            }
+            else
+            {
+                playLH = 1;
+                // Serial.println("read not HIGH");
+            }
+            tone(tonePin, CTONE[playLH][playType], musicPer);
             Serial.println("##########");
         }
     }
